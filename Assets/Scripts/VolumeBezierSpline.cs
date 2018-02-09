@@ -85,7 +85,8 @@ public class VolumeBezierSpline : MonoBehaviour
 
         CalculateControlPoints();
 
-        SetMesh();
+        // SetMesh();
+        SetCube();
         SampleSpline();
         SetBuffers();
         initialized = true;
@@ -206,7 +207,7 @@ public class VolumeBezierSpline : MonoBehaviour
                 var pt1 = curves[i].Point(t1);
                 var tan0 = curves[i].Tangent(t0);
                 var tan1 = curves[i].Tangent(t1);
-                
+
 
                 var angle = Vector3.Angle(Vector3.forward, tan0) * Mathf.Deg2Rad;
                 var axis = Vector3.Cross(tan0, Vector3.forward).normalized;
@@ -239,7 +240,6 @@ public class VolumeBezierSpline : MonoBehaviour
         Vector3[] normals = new Vector3[nbSide * 2];
         Vector2[] uv0 = new Vector2[nbSide * 2]; // 0: start vertices, 1: end vertices
         int[] triangles = new int[nbSide * 2 * 3];
-        float hheight = 0.5f;
         for (uint i = 0; i < nbSide; i++)
         {
             float rad = (float)i / (float)nbSide * Mathf.PI * 2f + Mathf.PI / 2f;
@@ -276,4 +276,59 @@ public class VolumeBezierSpline : MonoBehaviour
             aBuffer.SetData(args);
         }
     }
+
+    private void SetCube()
+    {
+        Vector3[] vertices = new Vector3[16];
+        Vector3[] normals = new Vector3[16];
+        Vector2[] uv = new Vector2[16];
+        int[] triangles = new int[8 * 3];
+        int vidx = 0;
+        int vtri = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            var v0 = vidx;
+            vertices[vidx] = new Vector3(cubeVertexTable[i, 0], cubeVertexTable[i, 1], 0);
+            normals[vidx] = normalTable[i];
+            uv[vidx++] = Vector2.zero;
+            var v1 = vidx;
+            vertices[vidx] = new Vector3(cubeVertexTable[i, 2], cubeVertexTable[i, 3], 0);
+            normals[vidx] = normalTable[i];
+            uv[vidx++] = Vector2.zero;
+            var v2 = vidx;
+            vertices[vidx] = new Vector3(cubeVertexTable[i, 0], cubeVertexTable[i, 1], 0);
+            normals[vidx] = normalTable[i];
+            uv[vidx++] = Vector2.one;
+            var v3 = vidx;
+            vertices[vidx] = new Vector3(cubeVertexTable[i, 2], cubeVertexTable[i, 3], 0);
+            normals[vidx] = normalTable[i];
+            uv[vidx++] = Vector2.one;
+            triangles[vtri++] = v0;
+            triangles[vtri++] = v1;
+            triangles[vtri++] = v2;
+            triangles[vtri++] = v2;
+            triangles[vtri++] = v1;
+            triangles[vtri++] = v3;
+        }
+        mesh = new Mesh();
+        mesh.vertices = vertices;
+        mesh.normals = normals;
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+    }
+
+    private static readonly int[,] cubeVertexTable = new int[4, 4]
+    {
+        {-1, -1, 1, -1},
+        {1, -1, 1, 1},
+        {1, 1, -1, 1},
+        {-1, 1, -1, -1}
+    };
+    private static readonly Vector3[] normalTable = new Vector3[4]
+    {
+        new Vector3(0, -1, 0),
+        new Vector3(1, 0, 0),
+        new Vector3(0, 1, 0),
+        new Vector3(-1, 0, 0)
+    };
 }
