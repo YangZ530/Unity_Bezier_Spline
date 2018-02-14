@@ -14,6 +14,10 @@ public class VolumeBezierSpline : MonoBehaviour
         public Vector3 endPos;
         public Vector3 startNormalRot;
         public Vector3 endNormalRot;
+        public Vector3 startScale;
+        public Vector3 endScale;
+        public Vector4 startColor;
+        public Vector4 endColor;
     }
 
     [SerializeField] public uint curveSubdivision = 4;
@@ -179,6 +183,14 @@ public class VolumeBezierSpline : MonoBehaviour
             curves[i].cp1 = 2f * curves[i].end - curves[i + 1].cp0;
         }
         curves[n - 1].cp1 = 0.5f * (curves[n - 1].end + curves[n - 1].cp0);
+
+        for (int i = 0; i < n; i++)
+        {
+            curves[i].scale_start = new Vector3(5, 1, 1);
+            curves[i].scale_end = new Vector3(1, 1, 1);
+            curves[i].color_start = Random.ColorHSV();
+            curves[i].color_end = Random.ColorHSV();
+        }
     }
 
     private void SetBuffers()
@@ -229,6 +241,10 @@ public class VolumeBezierSpline : MonoBehaviour
                 instances[i * curveSubdivision + j].endPos = pt1;
                 instances[i * curveSubdivision + j].startNormalRot = rot0;
                 instances[i * curveSubdivision + j].endNormalRot = rot1;
+                instances[i * curveSubdivision + j].startScale = curves[i].Scale(t0);
+                instances[i * curveSubdivision + j].endScale = curves[i].Scale(t1);
+                instances[i * curveSubdivision + j].startColor = curves[i].Color(t0);
+                instances[i * curveSubdivision + j].endColor = curves[i].Color(t1);
             }
         }
     }

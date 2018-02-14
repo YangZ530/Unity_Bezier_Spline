@@ -25,6 +25,10 @@ struct Instance
     float3 pos1;
     float3 rot0;
     float3 rot1;
+    float3 scale0;
+    float3 scale1;
+    float4 color0;
+    float4 color1;
 };
 
 #if defined(SHADER_API_D3D11) && SHADER_TARGET >= 45
@@ -48,6 +52,7 @@ struct v2f
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
     float3 posWorld : TEXCOORD0;
+    float4 color : COLOR;
 };
 
 inline float3 rotate(float3 v, float3 rot)
@@ -85,30 +90,31 @@ inline float3 quatMul(const float4 q, const float3 v)
 
 v2f vert(appdata v, uint instanceID : SV_InstanceID)
 {
+    float4 color = 1;
 #if defined(SHADER_API_D3D11) && SHADER_TARGET >= 45
     Instance p = _instances[instanceID];
-    // v.vertex.xyz = v.uv0.x == 0 ? p.pos0 : p.pos1;
+    v.vertex.xyz *= v.uv0.x == 0 ? p.scale0 : p.scale1;
     v.vertex.xyz = rotate(v.vertex.xyz, v.uv0.x == 0 ? p.rot0 : p.rot1) * _volume;
     v.vertex.xyz += v.uv0.x == 0 ? p.pos0 : p.pos1;
 
     v.normal.xyz = rotate(v.normal.xyz, v.uv0.x == 0 ? p.rot0 : p.rot1);
-    // v.normal.xyz = quatMul(v.uv0.x == 0 ? p.rot0 : p.rot1, v.normal.xyz);
-    // v.vertex.xyz += v.normal.xyz * _volume;
 
     v.vertex = mul(_local2World, v.vertex);
     v.normal = mul(_local2World, float4(v.normal, 0)).xyz;
     v.normal = normalize(v.normal);
+    color = v.uv0.x == 0 ? p.color0 : p.color1;
 #endif
     v2f o;
     o.posWorld = v.vertex.xyz;
     o.position = mul(UNITY_MATRIX_VP, v.vertex);
     o.normal = v.normal;
+    o.color = color;
     return o;
 }
 
 float4 frag(v2f i) : COLOR
 {
-    float4 albedo = float4(1.0, 1.0, 1.0, 1.0);
+    float4 albedo = i.color;
     float3 n = i.normal;
     float3 view = normalize(_WorldSpaceCameraPos - i.posWorld.xyz);
     float3 light = normalize(_WorldSpaceLightPos0.xyz);

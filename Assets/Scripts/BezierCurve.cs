@@ -10,8 +10,10 @@ public class BezierCurve
     public Vector3 end;
     public Vector3 up_begin;
     public Vector3 up_end;
-    private Quaternion startQuat;
-    private Quaternion endQuat;
+    public Vector3 scale_start;
+    public Vector3 scale_end;
+    public Color color_start;
+    public Color color_end;
 
     public BezierCurve(Vector3 start, Vector3 p0, Vector3 p1, Vector3 end, Vector3 up_begin, Vector3 up_end)
     {
@@ -44,19 +46,14 @@ public class BezierCurve
         return Vector3.Lerp(up_begin, up_end, t);
     }
 
-    public Quaternion Quat(float t)
+    public Vector3 Scale(float t)
     {
-        return Quaternion.Lerp(startQuat, endQuat, t);
+        return Vector3.Lerp(scale_start, scale_end, t);
     }
 
-    public Vector3 Normal(float t)
+    public Vector4 Color(float t)
     {
-        return Vector3.Cross(Vector3.Cross(cp0 - start, end - cp1), derivative(t)).normalized;
-    }
-
-    public Quaternion Orient(float t)
-    {
-        return Quaternion.FromToRotation(Vector3.forward, Vector3.up) * Quaternion.LookRotation(derivative(t), Vector3.Cross(derivative(t), Vector3.forward));
+        return Vector4.Lerp((Vector4)color_start, (Vector4)color_end, t);
     }
 
     private Vector3 bezierCurve(float t)
